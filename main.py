@@ -21,15 +21,15 @@ async def process_photo(
     bg_color: str = Form("#003399")
 ):
     try:
-        # Chuyển ảnh tải lên sang dạng Data URI
+        # Chuyển ảnh tải lên sang định dạng Data URI
         file_bytes = await file.read()
         base64_image = base64.b64encode(file_bytes).decode("utf-8")
         mime_type = file.content_type or "image/jpeg"
         data_uri = f"data:{mime_type};base64,{base64_image}"
 
-        # Gọi trực tiếp tên model sczhou/codeformer (không cố định hash version)
+        # Gọi chính xác model và version hash của CodeFormer
         output = replicate.run(
-            "sczhou/codeformer",
+            "sczhou/codeformer:7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db73143fe59e73169",
             input={
                 "image": data_uri,
                 "codeformer_fidelity": 0.85,
@@ -39,7 +39,8 @@ async def process_photo(
             }
         )
         
-        # Xử lý URL kết quả trả về từ Replicate
+        # Xử lý lấy URL ảnh kết quả
+        result_url = ""
         if isinstance(output, list):
             result_url = str(output[0])
         else:
