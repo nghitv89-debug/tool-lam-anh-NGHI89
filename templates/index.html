@@ -3,115 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Photo Studio Pro - Giữ Nét Gốc 100%</title>
+    <title>AI Photo Studio Pro - Ghép Áo & So Sánh Ảnh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3342/3342137.png">
     <style>
         body { background-color: #0f172a; color: #f8fafc; }
-        .tab-btn.active { background-color: #1e293b; border-bottom: 2px solid #3b82f6; color: #60a5fa; }
+        .tab-btn.active { background-color: #1e293b; border-bottom: 3px solid #3b82f6; color: #60a5fa; font-weight: bold; }
+        #placeholder-text {
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        .image-box { max-height: 450px; }
     </style>
 </head>
 <body class="font-sans antialiased">
     <div class="max-w-7xl mx-auto px-4 py-6">
-        <header class="text-center mb-8">
+        <header class="text-center mb-6">
             <h1 class="text-3xl font-bold text-blue-400">AI PHOTO STUDIO PRO</h1>
-            <p class="text-gray-400 text-sm mt-1">Chỉnh sửa ảnh thẻ & Phục hồi ảnh cũ - Bảo tồn diện mạo gốc 100%</p>
+            <p class="text-gray-400 text-sm mt-1">Ghép Trang Phục Chuẩn & Phục Hồi Ảnh - Bảo Tồn Diện Mạo Gốc</p>
         </header>
 
-        <div class="flex justify-center border-b border-gray-700 mb-6">
-            <button id="tab-id-btn" onclick="switchTab('id')" class="tab-btn active px-6 py-3 font-medium text-lg">Chỉnh Sửa Ảnh Thẻ</button>
-            <button id="tab-restore-btn" onclick="switchTab('restore')" class="tab-btn px-6 py-3 font-medium text-lg">Phục Hồi Ảnh Cũ</button>
+        <!-- Tabs -->
+        <div class="flex flex-wrap justify-center border-b border-gray-700 mb-6 gap-2">
+            <button id="tab-vest-btn" onclick="switchTab('vest')" class="tab-btn active px-4 py-2.5 text-sm md:text-base">Áo Vest Nam</button>
+            <button id="tab-nu-btn" onclick="switchTab('nu')" class="tab-btn px-4 py-2.5 text-sm md:text-base">Phụ Nữ Lớn Tuổi</button>
+            <button id="tab-somi-btn" onclick="switchTab('somi')" class="tab-btn px-4 py-2.5 text-sm md:text-base">Sơ Mi Học/Sinh Viên</button>
+            <button id="tab-tho-btn" onclick="switchTab('tho')" class="tab-btn px-4 py-2.5 text-sm md:text-base">Trang Phục Ảnh Thờ</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700">
-                <div id="panel-id">
-                    <h2 class="text-lg font-semibold mb-4 text-blue-300">Tùy chỉnh Ảnh Thẻ</h2>
-                    <form onsubmit="processImage(event, '/api/process-id-photo')">
-                        <div class="mb-4">
-                            <label class="block text-sm mb-2">Tải ảnh gốc:</label>
-                            <input type="file" name="file" required accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm mb-2">Màu phông nền:</label>
-                            <select name="bg_color" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
-                                <option value="#003399">Xanh Chuẩn Ảnh Thẻ (#003399)</option>
-                                <option value="#FFFFFF">Phông Trắng (#FFFFFF)</option>
-                                <option value="#1E90FF">Xanh Nhạt (#1E90FF)</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition">Tạo Ảnh Thẻ One-Click</button>
-                    </form>
-                </div>
+            <!-- Form -->
+            <div class="lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col gap-4">
+                <form id="main-form" onsubmit="processImage(event)">
+                    <input type="hidden" id="category-input" name="category" value="vest_nam">
 
-                <div id="panel-restore" class="hidden">
-                    <h2 class="text-lg font-semibold mb-4 text-purple-300">Phục Hồi Ảnh Cũ & Ảnh Thờ</h2>
-                    <form onsubmit="processImage(event, '/api/restore-old-photo')">
-                        <div class="mb-4">
-                            <label class="block text-sm mb-2">Tải ảnh cũ/mờ/đen trắng:</label>
-                            <input type="file" name="file" required accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
-                        </div>
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-2.5 rounded-lg transition">Phục Hồi Ảnh One-Click</button>
-                    </form>
-                </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">1. Tải ảnh gốc:</label>
+                        <!-- Thêm id 'file-input' để lắng nghe sự kiện thay đổi -->
+                        <input id="file-input" type="file" name="file" required accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">2. Chọn mẫu áo:</label>
+                        <select id="select-vest" name="sub_option_vest" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select">
+                            <option value="classic black suit with dark tie">Vest Đen + Cà Vạt Tối</option>
+                            <option value="navy blue luxury suit with tie">Vest Xanh Navy + Cà Vạt</option>
+                            <option value="grey formal suit with bow tie">Vest Xám Ghi Sang Trọng</option>
+                        </select>
+                        <select id="select-nu" name="sub_option_nu" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select hidden">
+                            <option value="traditional velvet ao dai with subtle embroidery">Áo Dài Nhung Truyền Thống</option>
+                            <option value="elegant brocade blouse for elderly woman">Áo Gấm Sang Trọng</option>
+                            <option value="formal dark blazer for mature woman">Áo Vest Nữ Lịch Sự</option>
+                        </select>
+                        <select id="select-somi" name="sub_option_somi" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select hidden">
+                            <option value="clean white long sleeve collared button shirt">Sơ Mi Trắng Tay Dài</option>
+                            <option value="clean white short sleeve collared button shirt">Sơ Mi Trắng Tay Ngắn</option>
+                            <option value="white shirt with student red tie">Sơ Mi Trắng + Cà Vạt</option>
+                        </select>
+                        <select id="select-tho" name="sub_option_tho" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select hidden">
+                            <option value="traditional dark silk ao dai for elderly man memorial photo">Nam: Áo Thọ Tối Màu</option>
+                            <option value="dark formal suit with black tie for memorial portrait">Nam: Vest Đen Trang Nghiêm</option>
+                            <option value="traditional dark velvet ao dai for elderly woman memorial photo">Nữ: Áo Dài Nhung Tối Màu</option>
+                            <option value="formal dark blouse for mature woman memorial photo">Nữ: Sơ Mi / Vest Tối</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium mb-2">3. Chọn màu nền:</label>
+                        <select name="bg_color" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
+                            <option value="#003399">Xanh Ảnh Thẻ chuẩn (#003399)</option>
+                            <option value="#FFFFFF">Phông Trắng (#FFFFFF)</option>
+                            <option value="#1E90FF">Phông Xanh Nhạt (#1E90FF)</option>
+                            <option value="#666666">Phông Xám Trang Nghiêm (#666666)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition">Tạo Ảnh & Ghép Đồ Tự Động</button>
+                </form>
             </div>
 
-            <div class="lg:col-span-8 bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col items-center justify-center min-h-[400px]">
-                <div id="loading" class="hidden text-center">
+            <!-- Kết quả so sánh -->
+            <div id="results-display" class="lg:col-span-8 bg-slate-800 p-5 rounded-xl border border-slate-700 min-h-[420px] relative">
+                <!-- Text hướng dẫn ban đầu -->
+                <p id="placeholder-text" class="absolute text-center text-gray-500">Kết quả xử lý ghép đồ sẽ hiển thị tại đây</p>
+
+                <div id="loading" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-full">
                     <div class="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-3"></div>
-                    <p class="text-sm text-gray-300">Đang xử lý AI trên máy chủ... Vui lòng đợi.</p>
+                    <p class="text-sm text-gray-300">Đang xử lý ghép đồ... Vui lòng đợi.</p>
                 </div>
 
-                <div id="result-container" class="hidden text-center w-full">
-                    <h3 class="text-lg font-medium mb-4 text-green-400">Kết Quả Hoàn Thành</h3>
-                    <img id="output-image" src="" alt="Kết quả" class="max-h-[450px] mx-auto rounded border border-slate-600 shadow-lg mb-4">
-                    <a id="download-btn" href="" download="result.png" target="_blank" class="inline-block bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-medium">Tải Ảnh Về</a>
-                </div>
-
-                <div id="placeholder" class="text-gray-500 text-center">
-                    <p>Kết quả xử lý sẽ hiển thị tại đây</p>
+                <div id="images-compare-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full hidden">
+                    <!-- Ảnh gốc -->
+                    <div class="text-center flex flex-col items-center justify-center">
+                        <h3 class="text-md font-medium mb-2 text-gray-400">Ảnh Gốc</h3>
+                        <img id="input-preview" src="" alt="Ảnh gốc preview" class="image-box object-contain rounded border border-slate-600 shadow">
+                    </div>
+                    <!-- Ảnh kết quả -->
+                    <div class="text-center flex flex-col items-center justify-center">
+                        <h3 class="text-md font-medium mb-2 text-green-400">Kết Quả</h3>
+                        <div id="result-success-content" class="w-full h-full flex flex-col items-center justify-center hidden">
+                            <img id="output-image" src="" alt="Ảnh kết quả" class="image-box object-contain rounded border border-slate-600 shadow-lg mb-4">
+                            <a id="download-btn" href="" download="ket-qua.png" target="_blank" class="inline-block bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-medium">Tải Ảnh Chất Lượng Cao</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        let currentTab = 'vest';
+        const fileInput = document.getElementById('file-input');
+        const inputPreview = document.getElementById('input-preview');
+        const imagesCompareContainer = document.getElementById('images-compare-container');
+        const placeholderText = document.getElementById('placeholder-text');
+        const loadingDiv = document.getElementById('loading');
+        const resultSuccessContent = document.getElementById('result-success-content');
+
+        // Sự kiện: Hiển thị ảnh gốc khi người dùng tải file lên
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.addEventListener('load', function() {
+                    inputPreview.src = this.result;
+                    imagesCompareContainer.classList.remove('hidden'); // Hiện container ảnh so sánh
+                    placeholderText.classList.add('hidden'); // Ẩn text hướng dẫn
+                    resultSuccessContent.classList.add('hidden'); // Ẩn ảnh kết quả cũ
+                });
+                reader.readAsDataURL(file);
+            }
+        });
+
         function switchTab(tab) {
+            currentTab = tab;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            if(tab === 'id') {
-                document.getElementById('tab-id-btn').classList.add('active');
-                document.getElementById('panel-id').classList.remove('hidden');
-                document.getElementById('panel-restore').classList.add('hidden');
-            } else {
-                document.getElementById('tab-restore-btn').classList.add('active');
-                document.getElementById('panel-restore').classList.remove('hidden');
-                document.getElementById('panel-id').classList.add('hidden');
+            document.querySelectorAll('.sub-select').forEach(sel => sel.classList.add('hidden'));
+
+            if(tab === 'vest') {
+                document.getElementById('tab-vest-btn').classList.add('active');
+                document.getElementById('select-vest').classList.remove('hidden');
+                document.getElementById('category-input').value = 'vest_nam';
+            } else if(tab === 'nu') {
+                document.getElementById('tab-nu-btn').classList.add('active');
+                document.getElementById('select-nu').classList.remove('hidden');
+                document.getElementById('category-input').value = 'nu_lon_tuoi';
+            } else if(tab === 'somi') {
+                document.getElementById('tab-somi-btn').classList.add('active');
+                document.getElementById('select-somi').classList.remove('hidden');
+                document.getElementById('category-input').value = 'so_mi';
+            } else if(tab === 'tho') {
+                document.getElementById('tab-tho-btn').classList.add('active');
+                document.getElementById('select-tho').classList.remove('hidden');
+                document.getElementById('category-input').value = 'anh_tho';
             }
         }
 
-        async function processImage(event, apiUrl) {
+        async function processImage(event) {
             event.preventDefault();
-            const formData = new FormData(event.target);
-            
-            document.getElementById('placeholder').classList.add('hidden');
-            document.getElementById('result-container').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // Bổ sung kiểu áo tương ứng tab
+            let subOption = '';
+            if(currentTab === 'vest') subOption = form.sub_option_vest.value;
+            else if(currentTab === 'nu') subOption = form.sub_option_nu.value;
+            else if(currentTab === 'somi') subOption = form.sub_option_somi.value;
+            else if(currentTab === 'tho') subOption = form.sub_option_tho.value;
+            formData.append('sub_option', subOption);
+
+            loadingDiv.classList.remove('hidden');
+            resultSuccessContent.classList.add('hidden');
 
             try {
-                const response = await fetch(apiUrl, { method: 'POST', body: formData });
+                const response = await fetch('/api/process-photo', { method: 'POST', body: formData });
                 const data = await response.json();
 
                 if(data.status === 'success') {
                     document.getElementById('output-image').src = data.image_url;
                     document.getElementById('download-btn').href = data.image_url;
-                    document.getElementById('result-container').classList.remove('hidden');
+                    resultSuccessContent.classList.remove('hidden'); // Hiện ảnh kết quả
                 } else {
                     alert('Lỗi xử lý: ' + data.message);
                 }
             } catch (err) {
                 alert('Lỗi kết nối máy chủ!');
             } finally {
-                document.getElementById('loading').classList.add('hidden');
+                loadingDiv.classList.add('hidden');
             }
         }
     </script>
