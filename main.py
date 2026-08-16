@@ -27,9 +27,9 @@ async def process_photo(
         mime_type = file.content_type or "image/jpeg"
         data_uri = f"data:{mime_type};base64,{base64_image}"
 
-        # Gọi mô hình CodeFormer phục hồi khuôn mặt trên Replicate
+        # Gọi trực tiếp tên model sczhou/codeformer (không cố định hash version)
         output = replicate.run(
-            "sczhou/codeformer:7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db73143fe59e73169",
+            "sczhou/codeformer",
             input={
                 "image": data_uri,
                 "codeformer_fidelity": 0.85,
@@ -39,7 +39,12 @@ async def process_photo(
             }
         )
         
-        result_url = str(output)
+        # Xử lý URL kết quả trả về từ Replicate
+        if isinstance(output, list):
+            result_url = str(output[0])
+        else:
+            result_url = str(output)
+
         return JSONResponse({"status": "success", "image_url": result_url})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
