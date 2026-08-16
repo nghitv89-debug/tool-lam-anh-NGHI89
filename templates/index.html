@@ -7,19 +7,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+        .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; height: 100%; }
         .btn-preset { background-color: #334155; color: #e2e8f0; border: none; margin: 2px; font-size: 0.85rem; }
         .btn-preset:hover { background-color: #3b82f6; color: white; }
         .img-preview { max-width: 100%; max-height: 450px; border-radius: 8px; object-fit: contain; }
+        .img-original { max-width: 100%; max-height: 150px; border-radius: 8px; border: 2px solid #334155; object-fit: contain; display: block; margin: 0 auto; }
+        #loadingSpinner p { font-size: 1.1rem; }
     </style>
 </head>
 <body class="py-4">
-    <div class="container">
+    <div class="container-fluid px-5">
         <h2 class="text-center mb-4 text-info fw-bold">AI PHOTO EDITOR (PROMPT-BASED)</h2>
         
         <div class="row g-4">
-            <!-- Cột cấu hình -->
-            <div class="col-md-5">
+            <!-- Cột cấu hình (Input) -->
+            <div class="col-lg-4 col-md-5">
                 <div class="card p-4">
                     <form id="processForm">
                         <div class="mb-3">
@@ -29,20 +31,20 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">2. Nhập Prompt (Mô tả yêu cầu):</label>
-                            <textarea id="promptInput" class="form-control" rows="3" placeholder="Ví dụ: Đổi sang áo vest đen nam, phông nền xanh studio..."></textarea>
+                            <textarea id="promptInput" class="form-control" rows="3" placeholder="Ví dụ: Chuyển sang áo vest đen nam, phông nền studio màu xanh..."></textarea>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label d-block fw-bold">Gợi ý Prompt nhanh:</label>
-                            <button type="button" class="btn btn-preset" onclick="setPrompt('Chỉnh sửa ảnh thẻ, nam mặc áo vest đen, sơ mi trắng, cà vạt, phông nền xanh dương studio')">Ảnh thẻ Vest Nam</button>
-                            <button type="button" class="btn btn-preset" onclick="setPrompt('Chỉnh sửa ảnh thẻ, nữ mặc áo sơ mi trắng, phông nền xanh dương studio')">Ảnh thẻ Sơ mi Nữ</button>
+                            <button type="button" class="btn btn-preset" onclick="setPrompt('Chỉnh sửa ảnh thẻ, nam mặc áo vest đen, sơ mi trắng, cà vạt, phông dương studio studio')">Ảnh thẻ Vest Nam</button>
+                            <button type="button" class="btn btn-preset" onclick="setPrompt('Chỉnh sửa ảnh thẻ, nữ mặc áo sơ mi trắng, phông dương studio studio')">Ảnh thẻ Sơ mi Nữ</button>
                             <button type="button" class="btn btn-preset" onclick="setPrompt('Phục hồi nét mặt, giữ nguyên khuôn mặt gốc, làm rõ chi tiết, làm sạch vết bẩn')">Phục hồi nét</button>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">3. Mức độ giữ ảnh gốc (Prompt Strength):</label>
                             <input type="range" id="strengthInput" class="form-range" min="0.3" max="0.8" step="0.05" value="0.65">
-                            <small class="text-muted">Giá trị nhỏ hơn sẽ giữ nét mặt gốc chuẩn xác hơn.</small>
+                            <small class="text-muted d-block mt-1">Gần 0.3 hơn sẽ giữ nét mặt gốc chuẩn xác hơn.</small>
                         </div>
 
                         <button type="submit" id="submitBtn" class="btn btn-primary w-100 fw-bold py-2">Xử Lý Ảnh Bằng AI</button>
@@ -50,22 +52,34 @@
                 </div>
             </div>
 
-            <!-- Cột hiển thị -->
-            <div class="col-md-7">
-                <div class="card p-4 text-center min-vh-50 d-flex justify-content-center align-items-center">
+            <!-- Cột hiển thị và so sánh -->
+            <div class="col-lg-8 col-md-7">
+                <div class="card p-4 text-center d-flex justify-content-center align-items-center">
                     <div id="loadingSpinner" class="d-none">
                         <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
-                        <p class="mt-3 text-info">AI đang tạo ảnh theo prompt... Vui lòng đợi trong giây lát.</p>
+                        <p class="mt-3 text-info fw-bold">AI đang tạo ảnh theo prompt... Vui lòng đợi trong giây lát.</p>
                     </div>
+                    
+                    <!-- Container hiển thị kết quả so sánh -->
                     <div id="resultContainer" class="d-none w-100">
-                        <h5 class="text-success mb-3">Kết quả AI Render:</h5>
-                        <img id="resultImage" class="img-preview mb-3" src="" alt="Result">
-                        <div>
-                            <a id="downloadBtn" href="" download="ai_photo.png" class="btn btn-success fw-bold">Tải Ảnh Về</a>
+                        <div class="row align-items-center">
+                            <!-- Ảnh AI (Ảnh kết quả - Lớn) -->
+                            <div class="col-lg-9 col-md-12 mb-lg-0 mb-3 text-center">
+                                <h5 class="text-success mb-2 fw-bold">Kết quả AI Render:</h5>
+                                <img id="resultImage" class="img-preview mb-3" src="" alt="Result">
+                            </div>
+                            
+                            <!-- Ảnh Gốc (Ảnh nhỏ để so sánh) -->
+                            <div class="col-lg-3 col-md-12 text-center">
+                                <h6 class="text-muted mb-2 fw-bold">Ảnh Gốc (So sánh):</h6>
+                                <img id="originalImage" class="img-original mb-3" src="" alt="Original">
+                                <a id="downloadBtn" href="" download="ai_photo_result.png" class="btn btn-success fw-bold w-100">Tải Ảnh Kết Quả</a>
+                            </div>
                         </div>
                     </div>
+                    
                     <div id="placeholderText" class="text-muted">
-                        <p>Ảnh kết quả sẽ hiển thị tại đây</p>
+                        <p>Ảnh kết quả sẽ hiển thị tại đây để bạn so sánh.</p>
                     </div>
                 </div>
             </div>
@@ -102,7 +116,12 @@
                 const data = await res.json();
 
                 if (data.status === 'success') {
+                    // Cập nhật ảnh AI
                     document.getElementById('resultImage').src = data.image_url;
+                    
+                    // Cập nhật ảnh gốc để so sánh (backend trả về dạng base64)
+                    document.getElementById('originalImage').src = data.original_url;
+                    
                     document.getElementById('downloadBtn').href = data.image_url;
                     document.getElementById('resultContainer').classList.remove('d-none');
                 } else {
