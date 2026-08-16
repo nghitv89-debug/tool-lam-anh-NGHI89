@@ -1,6 +1,6 @@
 import os
 import base64
-import fal_client
+import replicate
 from fastapi import FastAPI, File, UploadFile, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -21,22 +21,26 @@ async def process_photo(
     bg_color: str = Form("#003399")
 ):
     try:
-        # Đọc file và chuyển sang định dạng Data URI
+        # Chuyển ảnh sang dạng Data URI
         file_bytes = await file.read()
         base64_image = base64.b64encode(file_bytes).decode("utf-8")
         mime_type = file.content_type or "image/jpeg"
         data_uri = f"data:{mime_type};base64,{base64_image}"
 
-        # Chạy AI CodeFormer tối ưu nét mặt bằng cú pháp 'run'
-        result = fal_client.run(
-            "fal-ai/codeformer",
-            arguments={
-                "image_url": data_uri,
-                "fidelity": 0.85,
+        # Gọi mô hình CodeFormer trên Replicate
+        output = replicate.run(
+            "sczhou/codeformer:7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db73143fe59e73169",
+            input={
+                "image": data_uri,
+                "codeformer_fidelity": 0.85,
+                "background_enhance": True,
                 "face_upsample": True,
-                "background_enhance": True
+                "upscale": 2
             }
         )
-        return JSONResponse({"status": "success", "image_url": result["image"]["url"]})
+        
+        # Lấy URL kết quả
+        result_url = str(output)
+        return JSONResponse({"status": "success", "image_url": result_url})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
