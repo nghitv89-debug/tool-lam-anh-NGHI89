@@ -12,7 +12,10 @@
         .btn-preset:hover { background-color: #3b82f6; color: white; }
         .img-preview { max-width: 100%; max-height: 450px; border-radius: 8px; object-fit: contain; }
         .img-original { max-width: 100%; max-height: 150px; border-radius: 8px; border: 2px solid #334155; object-fit: contain; display: block; margin: 0 auto; }
+        /* Style cho khu vực xem trước ảnh gốc */
+        .img-original-preview { max-width: 100%; max-height: 250px; border-radius: 8px; border: 2px solid #3b82f6; object-fit: contain; display: block; margin: 10px auto; }
         #loadingSpinner p { font-size: 1.1rem; }
+        .d-none { display: none !important; }
     </style>
 </head>
 <body class="py-4">
@@ -27,6 +30,8 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">1. Chọn ảnh gốc:</label>
                             <input type="file" id="imageInput" class="form-control" accept="image/*" required>
+                            <!-- Khu vực hiển thị ảnh xem trước ngay khi chọn -->
+                            <img id="originalPreview" class="img-original-preview d-none" src="" alt="Original Preview">
                         </div>
 
                         <div class="mb-3">
@@ -72,14 +77,14 @@
                             <!-- Ảnh Gốc (Ảnh nhỏ để so sánh) -->
                             <div class="col-lg-3 col-md-12 text-center">
                                 <h6 class="text-muted mb-2 fw-bold">Ảnh Gốc (So sánh):</h6>
-                                <img id="originalImage" class="img-original mb-3" src="" alt="Original">
+                                <img id="originalComparison" class="img-original mb-3" src="" alt="Original Comparison">
                                 <a id="downloadBtn" href="" download="ai_photo_result.png" class="btn btn-success fw-bold w-100">Tải Ảnh Kết Quả</a>
                             </div>
                         </div>
                     </div>
                     
                     <div id="placeholderText" class="text-muted">
-                        <p>Ảnh kết quả sẽ hiển thị tại đây để bạn so sánh.</p>
+                        <p>Chọn ảnh gốc bên trái để xem trước, sau đó AI sẽ xử lý.</p>
                     </div>
                 </div>
             </div>
@@ -90,6 +95,33 @@
         function setPrompt(text) {
             document.getElementById('promptInput').value = text;
         }
+
+        // JavaScript hiển thị ảnh xem trước NGAY KHI CHỌN file
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const input = event.target;
+            const preview = document.getElementById('originalPreview');
+            const placeholder = document.getElementById('placeholderText');
+            const resultContainer = document.getElementById('resultContainer');
+            
+            // Xóa kết quả AI cũ nếu có
+            resultContainer.classList.add('d-none');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                    placeholder.innerHTML = '<p class="text-info fw-bold">Ảnh gốc đã được chọn và đang chờ xử lý.</p>';
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = "";
+                preview.classList.add('d-none');
+                placeholder.innerHTML = '<p>Chọn ảnh gốc bên trái để xem trước, sau đó AI sẽ xử lý.</p>';
+            }
+        });
 
         document.getElementById('processForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -109,6 +141,7 @@
             document.getElementById('loadingSpinner').classList.remove('d-none');
             document.getElementById('resultContainer').classList.add('d-none');
             document.getElementById('placeholderText').classList.add('d-none');
+            document.getElementById('originalPreview').classList.add('d-none'); // Ẩn xem trước gốc khi đang xử lý
             document.getElementById('submitBtn').disabled = true;
 
             try {
@@ -116,21 +149,23 @@
                 const data = await res.json();
 
                 if (data.status === 'success') {
-                    // Cập nhật ảnh AI
+                    // Cập nhật ảnh AI và ảnh so sánh
                     document.getElementById('resultImage').src = data.image_url;
-                    
-                    // Cập nhật ảnh gốc để so sánh (backend trả về dạng base64)
-                    document.getElementById('originalImage').src = data.original_url;
-                    
+                    document.getElementById('originalComparison').src = data.original_url;
                     document.getElementById('downloadBtn').href = data.image_url;
+                    
                     document.getElementById('resultContainer').classList.remove('d-none');
                 } else {
                     alert('Lỗi: ' + data.message);
                     document.getElementById('placeholderText').classList.remove('d-none');
+                    document.getElementById('placeholderText').innerHTML = '<p class="text-danger fw-bold">Lỗi xử lý. Vui lòng thử lại.</p>';
+                    document.getElementById('originalPreview').classList.remove('d-none'); // Hiện lại ảnh xem trước nếu lỗi
                 }
             } catch (err) {
                 alert('Có lỗi xảy ra: ' + err.message);
                 document.getElementById('placeholderText').classList.remove('d-none');
+                document.getElementById('placeholderText').innerHTML = '<p class="text-danger fw-bold">Lỗi kết nối mạng.</p>';
+                document.getElementById('originalPreview').classList.remove('d-none'); // Hiện lại ảnh xem trước nếu lỗi
             } finally {
                 document.getElementById('loadingSpinner').classList.add('d-none');
                 document.getElementById('submitBtn').disabled = false;
