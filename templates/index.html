@@ -3,103 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Photo Studio Pro - Phục Hồi & Ghép Đồ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3342/3342137.png">
+    <title>AI Photo Studio - Prompt Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #0f172a; color: #f8fafc; }
-        .tab-btn.active { background-color: #1e293b; border-bottom: 3px solid #3b82f6; color: #60a5fa; font-weight: bold; }
-        .image-box { max-height: 420px; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+        .btn-preset { background-color: #334155; color: #e2e8f0; border: none; margin: 2px; font-size: 0.85rem; }
+        .btn-preset:hover { background-color: #3b82f6; color: white; }
+        .img-preview { max-width: 100%; max-height: 450px; border-radius: 8px; object-fit: contain; }
     </style>
 </head>
-<body class="font-sans antialiased">
-    <div class="max-w-7xl mx-auto px-4 py-6">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-blue-400">AI PHOTO STUDIO PRO</h1>
-            <p class="text-gray-400 text-sm mt-1">Sửa Ảnh Thẻ, Phục Hồi Ảnh Cũ & Ghép Trang Phục - Giữ Nguyên Diện Mạo Gốc</p>
-        </header>
+<body class="py-4">
+    <div class="container">
+        <h2 class="text-center mb-4 text-info fw-bold">AI PHOTO EDITOR (PROMPT-BASED)</h2>
+        
+        <div class="row g-4">
+            <!-- Cột cấu hình -->
+            <div class="col-md-5">
+                <div class="card p-4">
+                    <form id="processForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">1. Chọn ảnh gốc:</label>
+                            <input type="file" id="imageInput" class="form-control" accept="image/*" required>
+                        </div>
 
-        <!-- Tất cả 6 Tabs danh mục -->
-        <div class="flex flex-wrap justify-center border-b border-gray-700 mb-6 gap-1 md:gap-2">
-            <button id="tab-anhthe-btn" onclick="switchTab('anhthe')" class="tab-btn active px-3 py-2 text-sm md:text-base">Chỉnh Sửa Ảnh Thẻ</button>
-            <button id="tab-phuchoi-btn" onclick="switchTab('phuchoi')" class="tab-btn px-3 py-2 text-sm md:text-base">Phục Hồi Ảnh Cũ</button>
-            <button id="tab-vest-btn" onclick="switchTab('vest')" class="tab-btn px-3 py-2 text-sm md:text-base">Áo Vest Nam</button>
-            <button id="tab-nu-btn" onclick="switchTab('nu')" class="tab-btn px-3 py-2 text-sm md:text-base">Phụ Nữ Lớn Tuổi</button>
-            <button id="tab-somi-btn" onclick="switchTab('somi')" class="tab-btn px-3 py-2 text-sm md:text-base">Sơ Mi Học/Sinh Viên</button>
-            <button id="tab-tho-btn" onclick="switchTab('tho')" class="tab-btn px-3 py-2 text-sm md:text-base">Trang Phục Ảnh Thờ</button>
-        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">2. Nhập Prompt (Mô tả yêu cầu):</label>
+                            <textarea id="promptInput" class="form-control" rows="3" placeholder="Ví dụ: Đổi sang áo vest đen nam, phông nền xanh studio..."></textarea>
+                        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Form tùy chọn -->
-            <div class="lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700">
-                <form id="main-form" onsubmit="processImage(event)">
-                    <input type="hidden" id="category-input" name="category" value="anh_the">
+                        <div class="mb-3">
+                            <label class="form-label d-block fw-bold">Gợi ý Prompt nhanh:</label>
+                            <button type="button" class="btn btn-preset" onclick="setPrompt('Chỉnh sửa ảnh thẻ, nam mặc áo vest đen, sơ mi trắng, cà vạt, phông nền xanh dương studio')">Ảnh thẻ Vest Nam</button>
+                            <button type="button" class="btn btn-preset" onclick="setPrompt('Chỉnh sửa ảnh thẻ, nữ mặc áo sơ mi trắng, phông nền xanh dương studio')">Ảnh thẻ Sơ mi Nữ</button>
+                            <button type="button" class="btn btn-preset" onclick="setPrompt('Phục hồi nét mặt, giữ nguyên khuôn mặt gốc, làm rõ chi tiết, làm sạch vết bẩn')">Phục hồi nét</button>
+                        </div>
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium mb-2">1. Tải ảnh gốc:</label>
-                        <input id="file-input" type="file" name="file" required accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">3. Mức độ giữ ảnh gốc (Prompt Strength):</label>
+                            <input type="range" id="strengthInput" class="form-range" min="0.3" max="0.8" step="0.05" value="0.65">
+                            <small class="text-muted">Giá trị nhỏ hơn sẽ giữ nét mặt gốc chuẩn xác hơn.</small>
+                        </div>
 
-                    <!-- Lựa chọn mẫu áo tương ứng tab -->
-                    <div id="sub-option-container" class="mb-4 hidden">
-                        <label class="block text-sm font-medium mb-2">2. Chọn kiểu trang phục:</label>
-                        <select id="select-vest" name="sub_option_vest" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select hidden">
-                            <option value="classic black suit with dark tie">Vest Đen + Cà Vạt Tối</option>
-                            <option value="navy blue luxury suit with tie">Vest Xanh Navy + Cà Vạt</option>
-                            <option value="grey formal suit with bow tie">Vest Xám Ghi Sang Trọng</option>
-                        </select>
-                        <select id="select-nu" name="sub_option_nu" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select hidden">
-                            <option value="traditional velvet ao dai with subtle embroidery">Áo Dài Nhung Truyền Thống</option>
-                            <option value="elegant brocade blouse for elderly woman">Áo Gấm Sang Trọng</option>
-                            <option value="formal dark blazer for mature woman">Áo Vest Nữ Lịch Sự</option>
-                        </select>
-                        <select id="select-somi" name="sub_option_somi" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select hidden">
-                            <option value="clean white long sleeve collared button shirt">Sơ Mi Trắng Tay Dài</option>
-                            <option value="clean white short sleeve collared button shirt">Sơ Mi Trắng Tay Ngắn</option>
-                            <option value="white shirt with student red tie">Sơ Mi Trắng + Cà Vạt</option>
-                        </select>
-                        <select id="select-tho" name="sub_option_tho" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm sub-select hidden">
-                            <option value="traditional dark silk ao dai for elderly man memorial photo">Nam: Áo Thọ Tối Màu</option>
-                            <option value="dark formal suit with black tie for memorial portrait">Nam: Vest Đen Trang Nghiêm</option>
-                            <option value="traditional dark velvet ao dai for elderly woman memorial photo">Nữ: Áo Dài Nhung Tối Màu</option>
-                            <option value="formal dark blouse for mature woman memorial photo">Nữ: Sơ Mi / Vest Tối</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-5">
-                        <label class="block text-sm font-medium mb-2">Màu nền thay thế:</label>
-                        <select name="bg_color" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
-                            <option value="#003399">Phông Xanh Ảnh Thẻ chuẩn (#003399)</option>
-                            <option value="#FFFFFF">Phông Trắng (#FFFFFF)</option>
-                            <option value="#1E90FF">Phông Xanh Nhạt (#1E90FF)</option>
-                            <option value="#666666">Phông Xám Trang Nghiêm (#666666)</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition">Thực Hiện Xử Lý AI</button>
-                </form>
+                        <button type="submit" id="submitBtn" class="btn btn-primary w-100 fw-bold py-2">Xử Lý Ảnh Bằng AI</button>
+                    </form>
+                </div>
             </div>
 
-            <!-- Khung hiển thị so sánh -->
-            <div id="results-display" class="lg:col-span-8 bg-slate-800 p-5 rounded-xl border border-slate-700 min-h-[420px] relative">
-                <p id="placeholder-text" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-500 text-center">Kết quả xử lý sẽ hiển thị tại đây</p>
-
-                <div id="loading" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-full">
-                    <div class="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-3"></div>
-                    <p class="text-sm text-gray-300">Đang xử lý ảnh... Vui lòng đợi trong giây lát.</p>
-                </div>
-
-                <div id="images-compare-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full hidden">
-                    <div class="text-center flex flex-col items-center justify-center">
-                        <h3 class="text-md font-medium mb-2 text-gray-400">Ảnh Gốc</h3>
-                        <img id="input-preview" src="" alt="Ảnh gốc" class="image-box object-contain rounded border border-slate-600 shadow">
+            <!-- Cột hiển thị -->
+            <div class="col-md-7">
+                <div class="card p-4 text-center min-vh-50 d-flex justify-content-center align-items-center">
+                    <div id="loadingSpinner" class="d-none">
+                        <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="mt-3 text-info">AI đang tạo ảnh theo prompt... Vui lòng đợi trong giây lát.</p>
                     </div>
-                    <div class="text-center flex flex-col items-center justify-center">
-                        <h3 class="text-md font-medium mb-2 text-green-400">Kết Quả AI</h3>
-                        <div id="result-success-content" class="w-full h-full flex flex-col items-center justify-center hidden">
-                            <img id="output-image" src="" alt="Ảnh kết quả" class="image-box object-contain rounded border border-slate-600 shadow-lg mb-4">
-                            <a id="download-btn" href="" download="ket-qua.png" target="_blank" class="inline-block bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-medium">Tải Ảnh Chất Lượng Cao</a>
+                    <div id="resultContainer" class="d-none w-100">
+                        <h5 class="text-success mb-3">Kết quả AI Render:</h5>
+                        <img id="resultImage" class="img-preview mb-3" src="" alt="Result">
+                        <div>
+                            <a id="downloadBtn" href="" download="ai_photo.png" class="btn btn-success fw-bold">Tải Ảnh Về</a>
                         </div>
+                    </div>
+                    <div id="placeholderText" class="text-muted">
+                        <p>Ảnh kết quả sẽ hiển thị tại đây</p>
                     </div>
                 </div>
             </div>
@@ -107,97 +73,50 @@
     </div>
 
     <script>
-        let currentTab = 'anhthe';
-        const fileInput = document.getElementById('file-input');
-        const inputPreview = document.getElementById('input-preview');
-        const imagesCompareContainer = document.getElementById('images-compare-container');
-        const placeholderText = document.getElementById('placeholder-text');
-        const loadingDiv = document.getElementById('loading');
-        const resultSuccessContent = document.getElementById('result-success-content');
-        const subOptionContainer = document.getElementById('sub-option-container');
-
-        fileInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.addEventListener('load', function() {
-                    inputPreview.src = this.result;
-                    imagesCompareContainer.classList.remove('hidden');
-                    placeholderText.classList.add('hidden');
-                    resultSuccessContent.classList.add('hidden');
-                });
-                reader.readAsDataURL(file);
-            }
-        });
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.sub-select').forEach(sel => sel.classList.add('hidden'));
-
-            if(tab === 'anhthe' || tab === 'phuchoi') {
-                subOptionContainer.classList.add('hidden');
-            } else {
-                subOptionContainer.classList.remove('hidden');
-            }
-
-            if(tab === 'anhthe') {
-                document.getElementById('tab-anhthe-btn').classList.add('active');
-                document.getElementById('category-input').value = 'anh_the';
-            } else if(tab === 'phuchoi') {
-                document.getElementById('tab-phuchoi-btn').classList.add('active');
-                document.getElementById('category-input').value = 'phu_choi';
-            } else if(tab === 'vest') {
-                document.getElementById('tab-vest-btn').classList.add('active');
-                document.getElementById('select-vest').classList.remove('hidden');
-                document.getElementById('category-input').value = 'vest_nam';
-            } else if(tab === 'nu') {
-                document.getElementById('tab-nu-btn').classList.add('active');
-                document.getElementById('select-nu').classList.remove('hidden');
-                document.getElementById('category-input').value = 'nu_lon_tuoi';
-            } else if(tab === 'somi') {
-                document.getElementById('tab-somi-btn').classList.add('active');
-                document.getElementById('select-somi').classList.remove('hidden');
-                document.getElementById('category-input').value = 'so_mi';
-            } else if(tab === 'tho') {
-                document.getElementById('tab-tho-btn').classList.add('active');
-                document.getElementById('select-tho').classList.remove('hidden');
-                document.getElementById('category-input').value = 'anh_tho';
-            }
+        function setPrompt(text) {
+            document.getElementById('promptInput').value = text;
         }
 
-        async function processImage(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
+        document.getElementById('processForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('imageInput').files[0];
+            const prompt = document.getElementById('promptInput').value;
+            const strength = document.getElementById('strengthInput').value;
+            
+            if (!fileInput) { alert('Vui lòng chọn ảnh!'); return; }
+            if (!prompt) { alert('Vui lòng nhập hoặc chọn Prompt!'); return; }
 
-            let subOption = '';
-            if(currentTab === 'vest') subOption = form.sub_option_vest.value;
-            else if(currentTab === 'nu') subOption = form.sub_option_nu.value;
-            else if(currentTab === 'somi') subOption = form.sub_option_somi.value;
-            else if(currentTab === 'tho') subOption = form.sub_option_tho.value;
-            formData.append('sub_option', subOption);
+            const formData = new FormData();
+            formData.append('file', fileInput);
+            formData.append('prompt', prompt);
+            formData.append('prompt_strength', strength);
 
-            loadingDiv.classList.remove('hidden');
-            resultSuccessContent.classList.add('hidden');
+            document.getElementById('loadingSpinner').classList.remove('d-none');
+            document.getElementById('resultContainer').classList.add('d-none');
+            document.getElementById('placeholderText').classList.add('d-none');
+            document.getElementById('submitBtn').disabled = true;
 
             try {
-                const response = await fetch('/api/process-photo', { method: 'POST', body: formData });
-                const data = await response.json();
+                const res = await fetch('/api/process-photo', { method: 'POST', body: formData });
+                const data = await res.json();
 
-                if(data.status === 'success') {
-                    document.getElementById('output-image').src = data.image_url;
-                    document.getElementById('download-btn').href = data.image_url;
-                    resultSuccessContent.classList.remove('hidden');
+                if (data.status === 'success') {
+                    document.getElementById('resultImage').src = data.image_url;
+                    document.getElementById('downloadBtn').href = data.image_url;
+                    document.getElementById('resultContainer').classList.remove('d-none');
                 } else {
-                    alert('Lỗi xử lý: ' + data.message);
+                    alert('Lỗi: ' + data.message);
+                    document.getElementById('placeholderText').classList.remove('d-none');
                 }
             } catch (err) {
-                alert('Lỗi kết nối máy chủ!');
+                alert('Có lỗi xảy ra: ' + err.message);
+                document.getElementById('placeholderText').classList.remove('d-none');
             } finally {
-                loadingDiv.classList.add('hidden');
+                document.getElementById('loadingSpinner').classList.add('d-none');
+                document.getElementById('submitBtn').disabled = false;
             }
-        }
+        });
     </script>
 </body>
 </html>
